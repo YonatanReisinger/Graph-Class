@@ -16,7 +16,7 @@ public:
 	class Vertex
 	{
 	private:
-		int value;
+		int m_value;
 	public:
 		Vertex(int value = 0);
 		int getValue() const;
