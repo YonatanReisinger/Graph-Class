@@ -1,6 +1,9 @@
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
+#define REF
+#define VAL
+
 #include <list>
 #include <iostream>
 using namespace std;
@@ -16,19 +19,24 @@ public:
 		int value;
 	public:
 		Vertex(int value = 0);
-		int getValue();
+		int getValue() const;
 		void setValue(int value);
+		bool operator ==(const Vertex& v) const;
 	};
 
-	bool IsAdjacent(Vertex u, Vertex v);
-	list<Vertex> GetAdjList(Vertex u);
-	void AddEdge(Vertex u, Vertex v);
-	bool RemoveEdge(Vertex u, Vertex v);
+	unsigned int getVertexIndex(const Vertex& v) const;
+	bool IsAdjacent(const Vertex& u, const Vertex& v) const;
+	list<Vertex> GetAdjList(const Vertex& u) const;
+	void AddEdge(const Vertex& u, const Vertex& v);
+	bool RemoveEdge(const Vertex& u, const Vertex& v);
 
 private:
-	unsigned int numOfVertices;
-	Vertex* vertices;
-	list<Vertex> *adjList;
+	unsigned int m_numOfVertices;
+	Vertex* m_vertices;
+	list<Vertex> *m_arrayOfadjacencyLists;
+
+	bool isVertexInGraph(const Vertex& v) const;
+	void PrintinvalidInputMessage() const;
 protected:
 
 };
