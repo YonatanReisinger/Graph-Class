@@ -1,7 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include "Graph.h"
-//using namespace std;
 
 
 int main()
@@ -19,7 +18,8 @@ int main()
 	g.AddEdge(v4, v3);
 	g.AddEdge(v3, v5);
 
-	g2 = g.MakeTranspose();
-	cout << g2 << endl;
+	g.transpose();
+
+	cout << g << endl;
 
 }
