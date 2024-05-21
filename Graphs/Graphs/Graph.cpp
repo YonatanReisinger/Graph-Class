@@ -1,71 +1,65 @@
 #include "Graph.h"
 
-Graph:: Graph(int numOfVertices)
+Graph::Graph(int numOfVertices) : m_numOfVertices(numOfVertices), m_vertices(numOfVertices), m_arrayOfadjacencyLists(numOfVertices)
 {
-    if (numOfVertices > 0)
+    if (numOfVertices <= 0)
     {
-        this->m_numOfVertices = numOfVertices;
-        this->m_arrayOfadjacencyLists = new list<Vertex>[numOfVertices];
-        this->m_vertices = new Vertex[numOfVertices];
+        PrintinvalidInputMessage();
+    }
+    else
+    {
         for (int i = 0; i < numOfVertices; i++)
         {
             m_vertices[i].setValue(i + 1);
         }
     }
-    else
-    {
-        PrintinvalidInputMessage();
-    }
 }
 Graph:: ~Graph()
 {
-    delete[] m_vertices;
-    delete[] m_arrayOfadjacencyLists;
-    this->m_vertices = 0;
-}
-Graph:: Graph(const Graph& otherGraph)
-{
-    this->m_numOfVertices = otherGraph.m_numOfVertices;
-    this->m_arrayOfadjacencyLists = new list<Vertex>[m_numOfVertices];
-    this->m_vertices = new Vertex[m_numOfVertices];
-    for (int i = 0; i < m_numOfVertices; i++)
+    // Clean up vertices
+    m_vertices.clear();
+
+    // Clean up adjacency lists
+    for (auto& adjList : m_arrayOfadjacencyLists)
     {
-        this->m_vertices[i] = otherGraph.m_vertices[i];
+        adjList.clear();
     }
-    for (int i = 0; i < m_numOfVertices; i++)
+    m_arrayOfadjacencyLists.clear();
+}
+Graph::Graph(const Graph& otherGraph) : m_numOfVertices(otherGraph.m_numOfVertices)
+{
+    // Deep copy vertices
+    m_vertices.reserve(otherGraph.m_vertices.size());
+    for (const Vertex& vertex : otherGraph.m_vertices)
     {
-        // deep copy all the vertices from the other graph
-        for (Vertex copiedVertex : otherGraph.m_arrayOfadjacencyLists[i])
+        m_vertices.emplace_back(vertex.getValue());
+    }
+
+    // Deep copy adjacency lists
+    m_arrayOfadjacencyLists.reserve(otherGraph.m_arrayOfadjacencyLists.size());
+    for (const auto& adjList : otherGraph.m_arrayOfadjacencyLists)
+    {
+        list<Vertex> newList;
+        for (const Vertex& vertex : adjList)
         {
-            this->m_arrayOfadjacencyLists[i].push_back(copiedVertex);
+            newList.push_back(Vertex(vertex.getValue()));
         }
+        m_arrayOfadjacencyLists.push_back(newList);
     }
 }
-Graph& Graph:: operator=(const Graph& otherGraph)
-{
-    if (this != &otherGraph) // Check for self-assignment
+Graph& Graph::operator=(const Graph& otherGraph) {
+    if (this != &otherGraph)
     {
-        delete[] m_vertices;
-        delete[] m_arrayOfadjacencyLists;
-
-        // Copy from the right-hand side object
-        this->m_numOfVertices = otherGraph.m_numOfVertices;
-        this->m_arrayOfadjacencyLists = new list<Vertex>[m_numOfVertices];
-        this->m_vertices = new Vertex[m_numOfVertices];
-
         // Deep copy vertices
-        for (int i = 0; i < m_numOfVertices; i++)
-        {
-            this->m_vertices[i] = otherGraph.m_vertices[i];
-        }
+        m_numOfVertices = otherGraph.m_numOfVertices;
+        m_vertices.resize(m_numOfVertices);
+        copy(otherGraph.m_vertices.begin(), otherGraph.m_vertices.end(), m_vertices.begin());
 
         // Deep copy adjacency lists
-        for (int i = 0; i < m_numOfVertices; i++)
+        m_arrayOfadjacencyLists.resize(m_numOfVertices);
+        for (size_t i = 0; i < m_numOfVertices; ++i)
         {
-            for (const Vertex& vertex : otherGraph.m_arrayOfadjacencyLists[i])
-            {
-                this->m_arrayOfadjacencyLists[i].push_back(vertex);
-            }
+            m_arrayOfadjacencyLists[i].assign(otherGraph.m_arrayOfadjacencyLists[i].begin(), otherGraph.m_arrayOfadjacencyLists[i].end());
         }
     }
 
@@ -77,7 +71,7 @@ unsigned int Graph:: getVertexIndex(const Vertex& v) const
 }
 bool Graph::IsAdjacent(const Vertex& u, const Vertex& v) const
 {
-    const list<Vertex>& uAdjacencyList = GetAdjList(u); // GetAdjList checks that u actually exists
+    const list<Vertex>& uAdjacencyList = GetAdjList(CONST REF u); // GetAdjList checks that u actually exists
     bool res = false;
 
     for (const Vertex& vertex : uAdjacencyList)
@@ -93,29 +87,29 @@ bool Graph::IsAdjacent(const Vertex& u, const Vertex& v) const
 }
 list<Graph:: Vertex>& Graph::GetAdjList(const Vertex& u)
 {
-    if (!isVertexInGraph(u))
+    if (!isVertexInGraph(CONST REF u))
     {
         PrintinvalidInputMessage();
     }
     else
     {
-        return m_arrayOfadjacencyLists[getVertexIndex(u)];
+        return m_arrayOfadjacencyLists[getVertexIndex(CONST REF u)];
     }
 }
 const list<Graph::Vertex>& Graph::GetAdjList(const Vertex& u) const
 {
-    if (!isVertexInGraph(u))
+    if (!isVertexInGraph(CONST REF u))
     {
         PrintinvalidInputMessage();
     }
     else
     {
-        return m_arrayOfadjacencyLists[getVertexIndex(u)];
+        return m_arrayOfadjacencyLists[getVertexIndex(CONST REF u)];
     }
 }
 void Graph::AddEdge(const Vertex& u, const Vertex& v)
 {
-    list<Vertex>& uAdjacencyList = GetAdjList(u); // GetAdjList checks that u actually exists
+    list<Vertex>& uAdjacencyList = GetAdjList(CONST REF u); // GetAdjList checks that u actually exists
     
     if (isVertexInGraph(u) && isVertexInGraph(v) && !IsAdjacent(u, v))
     {
@@ -128,7 +122,7 @@ void Graph::AddEdge(const Vertex& u, const Vertex& v)
 }
 void Graph:: RemoveEdge(const Vertex& u, const Vertex& v)
 {
-    list<Vertex>& uAdjacencyList = GetAdjList(u); // GetAdjList checks that u actually exists
+    list<Vertex>& uAdjacencyList = GetAdjList(CONST REF u); // GetAdjList checks that u actually exists
     
     if (isVertexInGraph(u) && isVertexInGraph(v) && IsAdjacent(u, v))
     {
@@ -185,12 +179,16 @@ Graph  Graph:: MakeTranspose() const
         Vertex sourceVertex = m_vertices[i];
         for (Vertex destinationVertex : this->m_arrayOfadjacencyLists[i])
         {
-            indexOfVertexInTransposeGraph = gTranspose.getVertexIndex(destinationVertex);
-            gTranspose.m_arrayOfadjacencyLists[indexOfVertexInTransposeGraph].push_back(sourceVertex);
+            indexOfVertexInTransposeGraph = gTranspose.getVertexIndex(CONST REF destinationVertex);
+            gTranspose.m_arrayOfadjacencyLists[indexOfVertexInTransposeGraph].push_back(CONST REF sourceVertex);
         }
     }
 
     return gTranspose;
+}
+void Graph::transpose()
+{
+    *this = this->MakeTranspose();
 }
 unsigned int Graph:: getNumOfVertices() const
 {
