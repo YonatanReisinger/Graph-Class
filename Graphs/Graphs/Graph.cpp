@@ -199,3 +199,63 @@ void Graph:: PrintinvalidInputMessage() const
     cout << "invalid input" << endl;
     exit(1);
 }
+
+list<Graph::Edge> Graph:: getEdgesFromUser() {
+    cout << "Enter the number of edges:" << endl;
+    int numberOfEdges;
+    cin >> numberOfEdges;
+    int t1, t2;
+    list<Graph::Edge> edges;
+    cout << "enter all edges:" << endl;
+    for (int i = 0; i < numberOfEdges; ++i) {
+        std::cin >> t1 >> t2;
+        Vertex v1(t1);
+        Vertex v2(t2);
+        Edge edge(v1, v2);
+        edges.push_back(edge);
+    }
+    return edges;
+}
+void Graph::addEdges(list<Graph::Edge> edgesList) {
+    int n = this->getNumOfVertices();
+    for (Edge e : edgesList) {
+        this->AddEdge(e.getFromVertex(), e.getToVertex());
+    }
+ }
+Graph::Vertex Graph::Edge::getFromVertex() 
+{
+    return this->from;
+}
+Graph::Vertex Graph::Edge::getToVertex()
+{
+    return this->to;
+}
+Graph::Edge::Edge(Vertex f, Vertex t)
+{
+    this->from = f;
+    this->to = t;
+}
+list<Graph::Vertex> Graph::DFS() {
+    list<Graph::Vertex> finishingList;
+    for (Vertex &v : m_vertices) {
+        if (v.getColor() == WHITE) {
+            visit(v,finishingList);
+        }
+    }
+    return finishingList;
+}
+void Graph::Vertex::setColor(VERTEX_COLOR color) {
+    this->color = color;
+}
+void Graph::visit(Graph::Vertex& u,list<Graph::Vertex>& finishingList) {
+    u.setColor(GREY);
+    list<Graph::Vertex> &currAdj = this->GetAdjList(u);
+    for (Vertex &v : currAdj) {
+        if (m_vertices[v.getValue()-1].getColor() == WHITE) {
+            m_vertices[v.getValue()-1].setColor(GREY);
+            visit(m_vertices[v.getValue()-1], finishingList);
+        }
+    }
+    u.setColor(BLACK);
+    finishingList.push_back(u);
+}

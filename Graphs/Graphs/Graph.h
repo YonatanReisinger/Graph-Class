@@ -13,22 +13,38 @@ using namespace std;
 class Graph
 {
 public:
-    explicit Graph(int numOfVertices);
-    ~Graph();
-    Graph(const Graph& otherGraph);
-    Graph& operator=(const Graph& otherGraph);
-
+    enum VERTEX_COLOR{WHITE,GREY,BLACK};
     class Vertex
     {
     private:
         int m_value;
+        VERTEX_COLOR color;
 
     public:
         Vertex(int value = 0);
         int getValue() const;
         void setValue(int value);
         bool operator==(const Vertex& v) const;
+        VERTEX_COLOR getColor() const;
+        void setColor(VERTEX_COLOR color);
     };
+    class Edge
+    {
+    private:
+        Vertex from;
+        Vertex to;
+
+    public:
+        Edge(Vertex f, Vertex t);
+        Vertex getFromVertex();
+        Vertex getToVertex();
+    };
+    explicit Graph(int numOfVertices);
+    ~Graph();
+    Graph(const Graph& otherGraph);
+    Graph& operator=(const Graph& otherGraph);
+
+
 
     bool IsAdjacent(const Vertex& u, const Vertex& v) const;
     list<Vertex>& GetAdjList(const Vertex& u);
@@ -40,6 +56,10 @@ public:
     Graph MakeTranspose() const;
     void transpose();
     unsigned int getNumOfVertices() const;
+    static list<Edge> getEdgesFromUser();
+    void addEdges(list<Graph::Edge> edges);
+    list<Graph::Vertex> DFS();
+    void visit(Graph::Vertex& u, list<Graph::Vertex>& finishingList);
 
 private:
     unsigned int m_numOfVertices;
