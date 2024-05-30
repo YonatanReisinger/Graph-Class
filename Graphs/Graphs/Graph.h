@@ -18,13 +18,13 @@ public:
     {
     private:
         int m_value;
-        VERTEX_COLOR color;
 
     public:
         Vertex(int value = 0);
         int getValue() const;
         void setValue(int value);
         bool operator==(const Vertex& v) const;
+        bool operator!=(const Vertex& v) const;
         VERTEX_COLOR getColor() const;
         void setColor(VERTEX_COLOR color);
     };
@@ -59,7 +59,9 @@ public:
     static list<Edge> getEdgesFromUser();
     void addEdges(list<Graph::Edge> edges);
     list<Graph::Vertex> DFS();
-    void visit(Graph::Vertex& u, list<Graph::Vertex>& finishingList);
+    void visit(Graph::Vertex& u, vector<VERTEX_COLOR>& colors, list<Graph::Vertex>& finishingList);
+    Graph makeSuperGraph();
+    void addVertex(Graph::Vertex& v );
 
 private:
     unsigned int m_numOfVertices;
@@ -69,6 +71,7 @@ private:
     bool isVertexInGraph(const Vertex& v) const;
     unsigned int getVertexIndex(const Vertex& v) const;
     void PrintinvalidInputMessage() const;
+    void superVisit(Vertex& u, Vertex& currentRoot , vector<VERTEX_COLOR>& colors , vector<Graph::Vertex>& roots);
 };
 
 

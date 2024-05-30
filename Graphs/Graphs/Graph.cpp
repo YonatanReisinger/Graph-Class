@@ -2,7 +2,7 @@
 
 Graph::Graph(int numOfVertices) : m_numOfVertices(numOfVertices), m_vertices(numOfVertices), m_arrayOfadjacencyLists(numOfVertices)
 {
-    if (numOfVertices <= 0)
+    if (numOfVertices < 0)
     {
         PrintinvalidInputMessage();
     }
@@ -236,26 +236,79 @@ Graph::Edge::Edge(Vertex f, Vertex t)
     this->to = t;
 }
 list<Graph::Vertex> Graph::DFS() {
+    vector<VERTEX_COLOR> colors ;
+    colors.resize(m_numOfVertices);
+    for (VERTEX_COLOR vColor : colors)
+    {
+        vColor = WHITE;
+    }
+
     list<Graph::Vertex> finishingList;
     for (Vertex &v : m_vertices) {
-        if (v.getColor() == WHITE) {
-            visit(v,finishingList);
+        if (colors[getVertexIndex(v)] == WHITE) {
+            visit(v, colors,finishingList);
         }
     }
     return finishingList;
 }
-void Graph::Vertex::setColor(VERTEX_COLOR color) {
-    this->color = color;
-}
-void Graph::visit(Graph::Vertex& u,list<Graph::Vertex>& finishingList) {
-    u.setColor(GREY);
+void Graph::visit(Graph::Vertex& u, vector<VERTEX_COLOR>& colors, list<Graph::Vertex>& finishingList) {
+    colors[getVertexIndex(u)] = GREY;
     list<Graph::Vertex> &currAdj = this->GetAdjList(u);
     for (Vertex &v : currAdj) {
-        if (m_vertices[v.getValue()-1].getColor() == WHITE) {
-            m_vertices[v.getValue()-1].setColor(GREY);
-            visit(m_vertices[v.getValue()-1], finishingList);
+        if (colors[getVertexIndex(v)] == WHITE) {
+            colors[getVertexIndex(v)] = GREY;
+            visit(m_vertices[getVertexIndex(v)], colors, finishingList);
         }
     }
-    u.setColor(BLACK);
+    colors[getVertexIndex(u)] = BLACK;
     finishingList.push_back(u);
 }
+Graph Graph::makeSuperGraph()
+{
+    Graph super(0);
+    vector<Graph::Vertex> roots;
+    vector<VERTEX_COLOR> colors;
+    Vertex currentRoot;
+
+    for (VERTEX_COLOR vColor : colors)
+    {
+        vColor = WHITE;
+    }
+    colors.resize(m_numOfVertices);
+    roots.resize(m_numOfVertices);
+
+    list<Graph::Vertex> finishingList = this->DFS();
+    reverse(finishingList.begin(), finishingList.end());
+    Graph gTranspose = this->MakeTranspose();
+    for (Vertex& u : finishingList)
+    {
+        if (colors[getVertexIndex(u)] == WHITE)
+        {
+            currentRoot = u;
+            super.addVertex(u);
+            superVisit(u, currentRoot,colors,roots);
+        }
+    }
+}
+void Graph::superVisit(Vertex& u, Vertex& currentRoot , vector<VERTEX_COLOR>& colors, vector<Graph::Vertex>& roots)
+{
+    unsigned int uInd = getVertexIndex(u), vInd;
+    roots[uInd] = currentRoot;
+    colors[uInd] = GREY;
+    list<Graph::Vertex>& uAdjList = this->GetAdjList(u);
+
+    for (Vertex& v: uAdjList)
+    {
+        vInd = getVertexIndex(v);
+        if (colors[vInd] == WHITE)
+        {
+            superVisit(v, currentRoot, colors, roots);
+        }
+        if (colors[vInd] == BLACK && roots[vInd] != currentRoot) // maybe else if ???????????????????
+        {
+
+        }
+    }
+
+}
+

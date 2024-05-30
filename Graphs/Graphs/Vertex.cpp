@@ -3,7 +3,6 @@
 Graph::Vertex:: Vertex(int value)
 {
     this->setValue(value);
-    color = WHITE;
 }
 
 int Graph::Vertex::getValue() const
@@ -19,6 +18,8 @@ bool Graph::Vertex:: operator ==(const Vertex& v) const
 {
     return this->m_value == v.getValue();
 }
-Graph::VERTEX_COLOR Graph::Vertex:: getColor() const {
-    return this->color;
+bool Graph::Vertex:: operator !=(const Vertex& v) const
+{
+    return this->m_value != v.getValue();
 }
+
