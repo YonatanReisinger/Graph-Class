@@ -8,6 +8,8 @@
 #include <list>
 #include <vector>
 #include <iostream>
+#include <map>
+#include <algorithm>
 using namespace std;
 
 class Graph
@@ -25,8 +27,7 @@ public:
         void setValue(int value);
         bool operator==(const Vertex& v) const;
         bool operator!=(const Vertex& v) const;
-        VERTEX_COLOR getColor() const;
-        void setColor(VERTEX_COLOR color);
+        bool operator<(const Vertex& v) const;
     };
     class Edge
     {
@@ -44,8 +45,6 @@ public:
     Graph(const Graph& otherGraph);
     Graph& operator=(const Graph& otherGraph);
 
-
-
     bool IsAdjacent(const Vertex& u, const Vertex& v) const;
     list<Vertex>& GetAdjList(const Vertex& u);
     const list<Vertex>& GetAdjList(const Vertex& u) const;
@@ -56,22 +55,24 @@ public:
     Graph MakeTranspose() const;
     void transpose();
     unsigned int getNumOfVertices() const;
+    unsigned int getNumOfEdges() const;
     static list<Edge> getEdgesFromUser();
     void addEdges(list<Graph::Edge> edges);
     list<Graph::Vertex> DFS();
     void visit(Graph::Vertex& u, vector<VERTEX_COLOR>& colors, list<Graph::Vertex>& finishingList);
     Graph makeSuperGraph();
-    void addVertex(Graph::Vertex& v );
+    void addVertex();
 
 private:
     unsigned int m_numOfVertices;
+    unsigned int m_numOfEdges;
     vector<Vertex> m_vertices;
     vector<list<Vertex>> m_arrayOfadjacencyLists;
 
     bool isVertexInGraph(const Vertex& v) const;
     unsigned int getVertexIndex(const Vertex& v) const;
-    void PrintinvalidInputMessage() const;
-    void superVisit(Vertex& u, Vertex& currentRoot , vector<VERTEX_COLOR>& colors , vector<Graph::Vertex>& roots);
+    static void PrintinvalidInputMessage();
+    void superVisit(const Vertex& u, Vertex& currentRoot, Graph& super, map<Graph::Vertex, int>& vertexToIndInSuperGraph, const Graph& gTranspose, vector<VERTEX_COLOR>& colors , vector<Graph::Vertex>& roots);
 };
 
 

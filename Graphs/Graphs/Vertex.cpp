@@ -22,4 +22,8 @@ bool Graph::Vertex:: operator !=(const Vertex& v) const
 {
     return this->m_value != v.getValue();
 }
+bool Graph::Vertex:: operator <(const Vertex& v) const
+{
+    return this->m_value < v.getValue();
+}
 
