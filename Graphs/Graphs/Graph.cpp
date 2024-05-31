@@ -1,6 +1,6 @@
 #include "Graph.h"
 
-Graph::Graph(int numOfVertices) : m_numOfVertices(numOfVertices), m_vertices(numOfVertices), m_arrayOfadjacencyLists(numOfVertices)
+Graph::Graph(int numOfVertices)
 {
     if (numOfVertices < 0)
     {
@@ -8,6 +8,10 @@ Graph::Graph(int numOfVertices) : m_numOfVertices(numOfVertices), m_vertices(num
     }
     else
     {
+        m_numOfVertices = numOfVertices;
+        m_numOfEdges = 0;
+        m_vertices.resize(numOfVertices);
+        m_arrayOfadjacencyLists.resize(numOfVertices);
         for (int i = 0; i < numOfVertices; i++)
         {
             m_vertices[i].setValue(i + 1);
@@ -36,6 +40,7 @@ Graph::Graph(const Graph& otherGraph) : m_numOfVertices(otherGraph.m_numOfVertic
     }
 
     // Deep copy adjacency lists
+    m_numOfEdges = otherGraph.m_numOfEdges;
     m_arrayOfadjacencyLists.reserve(otherGraph.m_arrayOfadjacencyLists.size());
     for (const auto& adjList : otherGraph.m_arrayOfadjacencyLists)
     {
@@ -52,6 +57,7 @@ Graph& Graph::operator=(const Graph& otherGraph) {
     {
         // Deep copy vertices
         m_numOfVertices = otherGraph.m_numOfVertices;
+        m_numOfEdges = otherGraph.m_numOfEdges;
         m_vertices.resize(m_numOfVertices);
         copy(otherGraph.m_vertices.begin(), otherGraph.m_vertices.end(), m_vertices.begin());
 
@@ -90,6 +96,7 @@ list<Graph:: Vertex>& Graph::GetAdjList(const Vertex& u)
     if (!isVertexInGraph(CONST REF u))
     {
         PrintinvalidInputMessage();
+        exit(1);
     }
     else
     {
@@ -101,6 +108,7 @@ const list<Graph::Vertex>& Graph::GetAdjList(const Vertex& u) const
     if (!isVertexInGraph(CONST REF u))
     {
         PrintinvalidInputMessage();
+        exit(1);
     }
     else
     {
@@ -114,6 +122,7 @@ void Graph::AddEdge(const Vertex& u, const Vertex& v)
     if (isVertexInGraph(u) && isVertexInGraph(v) && !IsAdjacent(u, v))
     {
         uAdjacencyList.push_back(v);
+        m_numOfEdges++;
     }
     else
     {
@@ -127,6 +136,7 @@ void Graph:: RemoveEdge(const Vertex& u, const Vertex& v)
     if (isVertexInGraph(u) && isVertexInGraph(v) && IsAdjacent(u, v))
     {
         uAdjacencyList.remove(v);
+        m_numOfEdges--;
     }
     else
     {
@@ -194,7 +204,11 @@ unsigned int Graph:: getNumOfVertices() const
 {
     return m_numOfVertices;
 }
-void Graph:: PrintinvalidInputMessage() const
+unsigned int Graph::getNumOfEdges() const
+{
+    return m_numOfEdges;
+}
+void Graph:: PrintinvalidInputMessage()
 {
     cout << "invalid input" << endl;
     exit(1);
@@ -263,52 +277,79 @@ void Graph::visit(Graph::Vertex& u, vector<VERTEX_COLOR>& colors, list<Graph::Ve
     colors[getVertexIndex(u)] = BLACK;
     finishingList.push_back(u);
 }
+void Graph:: addVertex()
+{
+    m_numOfVertices++;
+    Vertex newVertex(m_numOfVertices);
+    m_vertices.push_back(newVertex);
+    m_arrayOfadjacencyLists.resize(m_numOfVertices);
+}
 Graph Graph::makeSuperGraph()
 {
     Graph super(0);
     vector<Graph::Vertex> roots;
+    map<Graph::Vertex, int> vertexToIndInSuperGraph;
     vector<VERTEX_COLOR> colors;
     Vertex currentRoot;
+    list<Graph::Vertex> finishingList;
+
+    colors.resize(m_numOfVertices);
+    roots.resize(m_numOfVertices);
 
     for (VERTEX_COLOR vColor : colors)
     {
         vColor = WHITE;
     }
-    colors.resize(m_numOfVertices);
-    roots.resize(m_numOfVertices);
 
-    list<Graph::Vertex> finishingList = this->DFS();
-    reverse(finishingList.begin(), finishingList.end());
+    finishingList = this->DFS();
+    std:: reverse(finishingList.begin(), finishingList.end());
     Graph gTranspose = this->MakeTranspose();
+
     for (Vertex& u : finishingList)
     {
         if (colors[getVertexIndex(u)] == WHITE)
         {
             currentRoot = u;
-            super.addVertex(u);
-            superVisit(u, currentRoot,colors,roots);
+            vertexToIndInSuperGraph[currentRoot] = super.getNumOfVertices();
+            super.addVertex();
+            superVisit(u, currentRoot, super, vertexToIndInSuperGraph, gTranspose, colors, roots);
         }
     }
+
+    return super;
 }
-void Graph::superVisit(Vertex& u, Vertex& currentRoot , vector<VERTEX_COLOR>& colors, vector<Graph::Vertex>& roots)
+void Graph::superVisit(const Vertex& u, Vertex& currentRoot, Graph& super, map<Graph::Vertex, int>& vertexToIndInSuperGraph, const Graph& gTranspose, vector<VERTEX_COLOR>& colors, vector<Graph::Vertex>& roots)
 {
-    unsigned int uInd = getVertexIndex(u), vInd;
+    unsigned int uInd = getVertexIndex(u), vInd, currentRootValueInSuperGraph, rootVIndexInSuperGraph;
+    const list<Graph::Vertex>& uAdjListInGTranspose = gTranspose.GetAdjList(u);
+    Vertex rootOfV, rootOfVInSuperGraph, currentRootInSuperGraph;
+
     roots[uInd] = currentRoot;
     colors[uInd] = GREY;
-    list<Graph::Vertex>& uAdjList = this->GetAdjList(u);
+    currentRootValueInSuperGraph = super.getNumOfVertices();
+    currentRootInSuperGraph.setValue(currentRootValueInSuperGraph);
 
-    for (Vertex& v: uAdjList)
+    for (const Vertex& v: uAdjListInGTranspose)
     {
         vInd = getVertexIndex(v);
         if (colors[vInd] == WHITE)
         {
-            superVisit(v, currentRoot, colors, roots);
+            superVisit(v, currentRoot, super, vertexToIndInSuperGraph, gTranspose, colors, roots);
         }
-        if (colors[vInd] == BLACK && roots[vInd] != currentRoot) // maybe else if ???????????????????
+        // if the color of v is black and u and v dont habve the same root thus they are in different strong components
+        else if (colors[vInd] == BLACK && roots[vInd] != currentRoot)
         {
-
+            rootVIndexInSuperGraph = vertexToIndInSuperGraph[roots[vInd]];
+            rootOfV = super.m_vertices[rootVIndexInSuperGraph];
+            list<Graph::Vertex>& listOfRootVInSuperGraph = super.GetAdjList(rootOfV);
+            // if the last vertex in the list of v is not a current root, thus it was not added yet
+            if (listOfRootVInSuperGraph.empty() || listOfRootVInSuperGraph.back() != currentRootInSuperGraph)
+            {
+                super.AddEdge(rootOfV, currentRootInSuperGraph);
+            }
         }
     }
 
+    colors[uInd] = BLACK;
 }
 
